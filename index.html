@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Биржа труда</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #bb7932;
+        }
+        th {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Биржа труда</h1>
+    <form method="get">
+        <input type="text" name="search" placeholder="вакансия" value="{{ search_query }}">
+        <button type="submit">поиск</button>
+    </form>
+    <table id="vacancies">
+        {{ tables|safe }}
+    </table>
+    <script>
+        document.querySelectorAll('th').forEach(th => {
+            th.addEventListener('click', () => {
+                const sortBy = th.textContent;
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentSortBy = urlParams.get('sort_by');
+                const currentAscending = urlParams.get('ascending') === 'true';
+                const searchQuery = urlParams.get('search') || '';
+
+                let newAscending = true;
+                if (currentSortBy === sortBy) {
+                    newAscending = !currentAscending;
+                }
+
+                urlParams.set('sort_by', sortBy);
+                urlParams.set('ascending', newAscending);
+                urlParams.set('search', searchQuery);
+                window.location.search = urlParams.toString();
+            });
+        });
+    </script>
+</body>
+</html>
