@@ -1,11 +1,12 @@
 import requests
 import pandas as pd
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
 
 def get_vacancies(page=0):
     url = 'https://api.hh.ru/vacancies'
     params = {
-        'text': 'Python',
-        'area': 1,  # Москва
         'page': page,
         'per_page': 20
     }
@@ -37,7 +38,7 @@ def get_vacancies(page=0):
             'ссылка': link,
             'работодатель': company,
             'регион': location,
-            'з\п': salary
+            'з/п': salary
         })
     
     return vacancies
@@ -47,4 +48,17 @@ for page in range(5):
     all_vacancies.extend(get_vacancies(page))
 
 df = pd.DataFrame(all_vacancies)
-print(df)
+
+@app.route('/')
+def index():
+    sort_by = request.args.get('sort_by', 'должность')
+    ascending = request.args.get('ascending', 'true') == 'true'
+    search_query = request.args.get('search', '')
+
+    filtered_df = df[df.apply(lambda row: row.astype(str).str.contains(search_query, case=False).any(), axis=1)]
+    sorted_df = filtered_df.sort_values(by=sort_by, ascending=ascending)
+
+    return render_template('index.html', tables=[sorted_df.to_html(classes='data', header="true", index=False)], sort_by=sort_by, ascending=ascending, search_query=search_query)
+
+if __name__ == '__main__':
+    app.run(debug=True)
